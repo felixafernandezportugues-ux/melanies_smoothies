@@ -1,6 +1,35 @@
 # Import python packages
 import streamlit as st
 from snowflake.snowpark.functions import col
+import snowflake.connector
+from cryptography.hazmat.primitives import serialization
+
+def get_snowflake_connection():
+    # 1. Traer el string del secret
+    raw_key = st.secrets["snowflake"]["private_key_raw"]
+    
+    # 2. Convertir a objeto de clave (Si tiene contraseña, ponla en password=b'tu_pass')
+    p_key = serialization.load_pem_private_key(
+        raw_key.encode(),
+        password=None, 
+        backend=None
+    )
+
+    # 3. Convertir a formato DER
+    pkb = p_key.private_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+    # 4. Pasar la clave pkb al parámetro private_key
+    return snowflake.connector.connect(
+        account=st.secrets["snowflake"]["account"],
+        user=st.secrets["snowflake"]["user"],
+        private_key=pkb,  # <--- AQUÍ está el truco
+        role=st.secrets["snowflake"]["role"],
+        warehouse=st.secrets["snowflake"]["warehouse"]
+    )
 
 # Write directly to the app
 st.title(f":cup_with_straw: Customize Your Smoothie :cup_with_straw: ")
