@@ -4,6 +4,7 @@ from snowflake.snowpark.functions import col
 import snowflake.connector
 from cryptography.hazmat.primitives import serialization
 import requests
+import pandas as pd
 
 def get_snowflake_connection():
     # 1. Traer el string del secret
